@@ -63,6 +63,12 @@ namespace shortynet.Controllers
             {
                 return NotFound();
             }
+
+            if (shorty.RedirectCount == 0)
+            {
+                return Ok(new { startDate = shorty.StartDate, redirectCount = shorty.RedirectCount });
+            }
+
             return Ok(shorty);
         }
 
@@ -82,6 +88,19 @@ namespace shortynet.Controllers
             {
                 shorty.Shortcode = GenerateShortcode();
             }
+
+            if (await dbContext.Shorteners.AnyAsync(s => s.Shortcode == shorty.Shortcode))
+            {
+                return Conflict(new { error = $"An existing record with the shortcode '{shorty.Shortcode}' was already found." });
+            }
+
+            // check if the shortcode is a valid regex
+            if (!System.Text.RegularExpressions.Regex.IsMatch(shorty.Shortcode, @"^[0-9a-zA-Z_]{4,}$"))
+            {
+                return UnprocessableEntity(new { error = "The shortcode fails to meet the following regexp: ^[0-9a-zA-Z_]{4,}$." });
+            }
+
+
 
             dbContext.Shorteners.Add(shorty);
             await dbContext.SaveChangesAsync();

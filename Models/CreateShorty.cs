@@ -11,8 +11,8 @@ namespace shortynet.Models
         [Required]
         public string Url { get; set; }
         // Only Unique Shortcodes
-        [StringLength(6, MinimumLength = 6)]
         [AllowNull]
+        [RegularExpression(@"^[0-9a-zA-Z_]{4,}$")]
         public string Shortcode { get; set; }
     }
 }
